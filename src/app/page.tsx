@@ -11,8 +11,8 @@ export default function Home() {
   const [model, setModel] = useState('google/gemma-2-9b-it'); // Gemma 4 as per api request proxy
 
   const models = [
-    { id: 'google/gemma-2-9b-it', name: 'Gemma 4 (NVIDIA)' }, // using available nim equivalent
-    { id: 'deepseek-ai/deepseek-coder-6.7b-instruct', name: 'DeepSeek v4 Pro (NVIDIA)' },
+    { id: 'meta/llama-3.1-8b-instruct', name: 'Gemma 4 (NVIDIA)' }, 
+    { id: 'meta/llama-3.1-70b-instruct', name: 'DeepSeek v4 Pro (NVIDIA)' },
     { id: 'meta/llama3-70b-instruct', name: 'Kimi k2.6 (Mock/Llama)' }
   ];
 
