@@ -42,9 +42,18 @@ export default function Home() {
     });
 
     const data = await res.json();
+
+    if (!res.ok) {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        text: `❌ Error del servidor: ${data.error || 'Algo ha fallado'}. Comprueba tus variables de entorno en Vercel.` 
+      }]);
+      return;
+    }
+
     setMessages(prev => [...prev, { 
       role: 'assistant', 
-      text: data.reply.replace(/```json[\s\S]*?```/, '') // Ocultar JSON del usuario
+      text: data.reply ? data.reply.replace(/```json[\s\S]*?```/, '') : 'Sin respuesta.'
     }]);
 
     if (data.updated) {
