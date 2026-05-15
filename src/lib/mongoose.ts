@@ -8,6 +8,10 @@ if (!MONGODB_URI) {
   );
 }
 
+declare global {
+  var mongoose: any;
+}
+
 let cached = global.mongoose;
 
 if (!cached) {
