@@ -36,18 +36,31 @@ export async function POST(req: Request) {
       Si es sólo consulta, responde amistosamente sin el JSON.
     `;
 
-    const modelName = model || 'google/gemma-2-9b-it'; 
+    const modelName = model || 'google/gemma-4-31b-it'; 
 
-    const chatCompletion = await openai.chat.completions.create({
-      model: modelName,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message }
-      ],
-      max_tokens: 500,
+    const nvidiaResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        max_tokens: 500,
+      })
     });
 
-    const aiMessage = chatCompletion.choices[0].message.content || 'Sin respuesta';
+    if (!nvidiaResponse.ok) {
+      const errText = await nvidiaResponse.text();
+      throw new Error(`NVIDIA API HTTP ${nvidiaResponse.status}: ${errText}`);
+    }
+
+    const chatCompletion = await nvidiaResponse.json();
+    const aiMessage = chatCompletion.choices?.[0]?.message?.content || 'Sin respuesta';
     let updated = false;
 
     // Procesar JSON si existe en la respuesta para actualizar la BD real
