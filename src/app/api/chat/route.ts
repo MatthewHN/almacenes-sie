@@ -44,6 +44,7 @@ export async function POST(req: Request) {
       Si la operación es un error lógico (ej: restar algo que no existe), responde amablemente que es imposible y NO emitas el JSON.
     `;
 
+    // Si no llega modelo, asegurar que usamos uno existente de NVIDIA
     const modelName = model || 'google/gemma-4-31b-it'; 
 
     const nvidiaResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {

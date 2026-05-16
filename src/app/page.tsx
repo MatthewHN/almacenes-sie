@@ -66,16 +66,17 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   
-  // Modelos REALES que funcionan en NVIDIA, pero mostramos los nombres que quería el profesor
+  // Modelos REALES que funcionan en NVIDIA hoy en día
   const models = [
-    { id: 'google/gemma-2-9b-it', name: 'Gemma 4 (NVIDIA)' },
-    { id: 'deepseek-ai/deepseek-coder-6.7b-instruct', name: 'DeepSeek v4 Pro (NVIDIA)' },
-    { id: 'meta/llama3-70b-instruct', name: 'Kimi k2.6 (Mock/Llama)' }
+    { id: 'google/gemma-4-31b-it', name: 'Gemma 4 (NVIDIA)' },
+    { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek v4 Pro (NVIDIA)' },
+    { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (NVIDIA)' }
   ];
   const [model, setModel] = useState(models[0].id);
 
   const [stats, setStats] = useState<StatsData>({ products: [], suppliers: [], orders: [], wastes: [] });
   const [loading, setLoading] = useState(false);
+  const [showChartsModal, setShowChartsModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -239,11 +240,16 @@ export default function Home() {
 
         <div className="mt-4 pt-4 border-t border-slate-700 flex flex-col gap-2">
           <div className="flex flex-wrap gap-2 mb-2">
-             {['Pedido 10 de ratones a Logitech', 'Tira 2 monitores por rotura'].map(action => (
+             {[
+                'Pedido 10 de ratones a Logitech', 
+                'Tira 2 monitores por rotura',
+                'Nos han llegado 5 teclados de Corsair',
+                '¿Cuántos ratones nos quedan en stock?'
+              ].map(action => (
                 <button 
                   key={action}
                   onClick={() => sendMessage(action)}
-                  className="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded-full text-slate-300 transition-colors"
+                  className="bg-slate-700 hover:bg-slate-600 text-[11px] px-3 py-1.5 rounded-full text-slate-300 transition-colors"
                   disabled={loading}
                 >
                   {action}
@@ -271,8 +277,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Zona Derecha - Dashboard */}
-      <div className="w-full md:w-[450px] flex flex-col gap-6 overflow-y-auto pr-2 pb-6 md:pb-0">
+      {/* Zona Derecha - Dashboard Simplificado */}
+      <div className="w-full md:w-[350px] flex flex-col gap-4">
         {/* Resumen */}
         <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl shrink-0">
           <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4">RESUMEN GLOBAL</h3>
@@ -288,44 +294,74 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Gráfico Barras */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl shrink-0">
-          <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4">NIVELES DE STOCK</h3>
-          <div className="h-48 flex items-center justify-center">
-            {stats.products.length > 0 ? (
-                <Bar data={barData} options={chartOptions} />
-            ) : (
-                <p className="text-sm text-slate-500">Sin datos de stock</p>
-            )}
-          </div>
-        </div>
-
-        {/* Gráfico Tarta */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl shrink-0">
-          <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4">MOTIVOS DE MERMA</h3>
-          <div className="h-48 flex items-center justify-center">
-            {stats.wastes.length > 0 ? (
-                <Pie data={pieData} options={pieChartOptions} />
-            ) : (
-                <p className="text-sm text-slate-500">Sin registros de mermas</p>
-            )}
-          </div>
-        </div>
+        {/* Botón para abrir Gráficos */}
+        <button 
+          onClick={() => setShowChartsModal(true)}
+          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl p-4 font-semibold shadow-xl border border-indigo-500 transition-colors shrink-0"
+        >
+          📊 Ver Gráficos (Stock y Mermas)
+        </button>
 
         {/* Últimos Pedidos */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl shrink-0">
-           <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4">ÚLTIMAS ENTRADAS (PEDIDOS)</h3>
-           <ul className="text-sm space-y-2">
-            {stats.orders.slice(-5).reverse().map(o => (
-              <li key={o._id} className="text-slate-300 border-b border-slate-700 pb-2 flex justify-between">
-                <span><span className="font-bold text-indigo-400">+{o.quantity}</span> {o.productName}</span>
-                <span className="text-slate-500">{o.supplierName}</span>
-              </li>
-            ))}
-            {stats.orders.length === 0 && <li className="text-slate-500">Ningún pedido al proveedor</li>}
-           </ul>
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl flex-1 flex flex-col min-h-0">
+           <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4 shrink-0">ÚLTIMAS ENTRADAS</h3>
+           <div className="overflow-y-auto pr-2 flex-1">
+             <ul className="text-sm space-y-3">
+              {stats.orders.slice(-5).reverse().map(o => (
+                <li key={o._id} className="text-slate-300 border-b border-slate-700 pb-2 flex justify-between">
+                  <span><span className="font-bold text-indigo-400">+{o.quantity}</span> {o.productName}</span>
+                  <span className="text-slate-500">{o.supplierName}</span>
+                </li>
+              ))}
+              {stats.orders.length === 0 && <li className="text-slate-500">Ningún pedido al proveedor</li>}
+             </ul>
+           </div>
         </div>
       </div>
+
+      {/* MODAL / POPUP PARA GRÁFICOS */}
+      {showChartsModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in zoom-in duration-200">
+          <div className="bg-slate-800 rounded-2xl border border-slate-600 shadow-2xl w-full max-w-4xl p-6 relative max-h-[90vh] flex flex-col">
+            <button 
+              onClick={() => setShowChartsModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-700 hover:bg-slate-600 rounded-full w-8 h-8 flex items-center justify-center font-bold"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold text-white mb-6">Gráficos y Estadísticas de Inventario</h2>
+            
+            <div className="flex flex-col md:flex-row gap-6 overflow-y-auto pb-4">
+              {/* Gráfico Barras */}
+              <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
+                <h3 className="text-sm font-semibold text-slate-300 tracking-wider mb-4">NIVELES DE STOCK ACTUAL</h3>
+                <div className="h-64 flex items-center justify-center">
+                  {stats.products.length > 0 ? (
+                      <Bar data={barData} options={chartOptions} />
+                  ) : (
+                      <p className="text-sm text-slate-500">Sin datos de stock</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Gráfico Tarta */}
+              <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-slate-300 tracking-wider">MOTIVOS DE MERMA</h3>
+                  <p className="text-[10px] text-slate-400 mt-1 leading-tight">Las mermas son reducciones de stock por problemas como caducidad, pérdidas o roturas (productos que se tiran a la basura).</p>
+                </div>
+                <div className="h-64 flex items-center justify-center">
+                  {stats.wastes.length > 0 ? (
+                      <Pie data={pieData} options={pieChartOptions} />
+                  ) : (
+                      <p className="text-sm text-slate-500">Sin registros de mermas</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
