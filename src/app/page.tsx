@@ -198,10 +198,10 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[100dvh] md:h-screen p-4 md:p-8 gap-6 max-w-[1400px] mx-auto font-sans overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-[100dvh] md:h-screen p-2 md:p-8 gap-4 md:gap-6 max-w-[1400px] mx-auto font-sans bg-slate-900 md:overflow-hidden">
       {/* Zona Izquierda - Chat */}
-      <div className="flex-1 flex flex-col bg-slate-800 rounded-2xl border border-slate-700 shadow-xl overflow-hidden p-6">
-        <div className="mb-6">
+      <div className="w-full md:flex-1 flex flex-col h-[90dvh] md:h-auto bg-slate-800 rounded-2xl border border-slate-700 shadow-xl overflow-hidden p-4 md:p-6 mb-4 md:mb-0">
+        <div className="mb-4 md:mb-6 shrink-0">
           <h2 className="text-xs font-semibold text-slate-400 tracking-wider">ASISTENTE DE INVENTARIO</h2>
           <h1 className="text-3xl font-bold text-white mt-1">Stock Atelier</h1>
           <p className="text-slate-400 mt-2 text-sm">Todo se gestiona por chat: pedidos, mermas, consultas y proveedores.</p>
