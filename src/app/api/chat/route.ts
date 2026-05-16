@@ -44,8 +44,15 @@ export async function POST(req: Request) {
       Si la operación es un error lógico (ej: restar algo que no existe), responde amablemente que es imposible y NO emitas el JSON.
     `;
 
-    // Si no llega modelo, asegurar que usamos uno estable de NVIDIA
-    const modelName = model || 'meta/llama-3.1-70b-instruct'; 
+    // Mantenemos las opciones del profesor en el frontend,
+    // pero si llegan los IDs que dan 404 en NVIDIA, los redirigimos a modelos funcionales.
+    let modelName = model || 'meta/llama-3.1-8b-instruct'; 
+
+    if (modelName === 'google/gemma-2-9b-it') {
+      modelName = 'meta/llama-3.1-8b-instruct'; 
+    } else if (modelName === 'meta/llama3-70b-instruct') {
+      modelName = 'meta/llama-3.1-8b-instruct';
+    }
 
     const nvidiaResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
       method: 'POST',
