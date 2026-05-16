@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     let aiMessage = 'Sin respuesta';
 
     // 1. OPENAI (GPT)
-    if (modelName === 'gpt-4o-mini') {
+    if (modelName === 'gpt-5.4-nano') {
       const gptRes = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     } 
     
     // 2. ANTHROPIC (CLAUDE)
-    else if (modelName === 'claude-3-haiku-20240307') {
+    else if (modelName === 'claude-haiku-4-5') {
       const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     }
     
     // 3. GOOGLE (GEMINI)
-    else if (modelName === 'gemini-1.5-flash') {
+    else if (modelName === 'gemini-3.1-flash-lite') {
       const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

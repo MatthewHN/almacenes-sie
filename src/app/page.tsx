@@ -68,9 +68,9 @@ export default function Home() {
   
   // Selector real de modelos TOP tier (propios de cada vendor)
   const models = [
-    { id: 'gpt-4o-mini', name: 'GPT-4o Mini (OpenAI)' },
-    { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku (Anthropic)' },
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Google)' }
+    { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano (OpenAI)' },
+    { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5 (Anthropic)' },
+    { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Google)' }
   ];
   const [model, setModel] = useState(models[0].id);
 
