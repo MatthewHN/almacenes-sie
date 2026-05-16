@@ -5,6 +5,8 @@ import Supplier from '@/models/Supplier';
 import Order from '@/models/Order';
 import Waste from '@/models/Waste';
 
+export const maxDuration = 60; // Extiende el límite de tiempo de Vercel a 60 segundos para evitar Timeouts con NVIDIA
+
 export async function POST(req: Request) {
   try {
     await dbConnect();
@@ -44,15 +46,7 @@ export async function POST(req: Request) {
       \`\`\`
     `;
 
-    // Mantenemos las opciones del profesor en el frontend,
-    // pero si llegan los IDs que dan 404 en NVIDIA, los redirigimos a modelos funcionales.
-    let modelName = model || 'meta/llama-3.1-8b-instruct'; 
-
-    if (modelName === 'google/gemma-2-9b-it') {
-      modelName = 'meta/llama-3.1-8b-instruct'; 
-    } else if (modelName === 'meta/llama3-70b-instruct') {
-      modelName = 'meta/llama-3.1-8b-instruct';
-    }
+    const modelName = model; // Carga exactamente el modelo que llega del Frontend, sin trampas.
 
     const nvidiaResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
       method: 'POST',
