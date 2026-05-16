@@ -1,39 +1,47 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import dbConnect from '@/lib/mongoose';
 import Product from '@/models/Product';
-
-const openai = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY || 'fake-key',
-  baseURL: 'https://integrate.api.nvidia.com/v1',
-});
-
-// Mock inicial si no hay base de datos conectada correctamente para testing
-const MOCK_DB = false;
+import Supplier from '@/models/Supplier';
+import Order from '@/models/Order';
+import Waste from '@/models/Waste';
 
 export async function POST(req: Request) {
   try {
     await dbConnect();
     const { message, model } = await req.json();
 
-    // Fetch existing inventory state to give as context to the AI
     const products = await Product.find({});
     const inventoryContext = products.map(p => `${p.name}: ${p.quantity}`).join(', ');
 
     const systemPrompt = `
       Eres el Asistente de Inventario para "Stock Atelier". 
-      Tu objetivo es leer las instrucciones del usuario (sumar, restar, crear o consultar) y responder sobre el stock.
+      Tu objetivo es leer las instrucciones del usuario y convertirlas a acciones estructuradas.
       El inventario actual es: ${inventoryContext.length > 0 ? inventoryContext : 'vacío'}.
-      
-      Si el usuario pide realizar una modificación (añadir/quitar stock, crear producto), hazlo devolviendo formato JSON al final de tu mensaje en un bloque de código como este:
+      Nunca permitas restar inventario si un producto no existe o bajará de 0.
+
+      Dispones de las siguientes acciones permitidas (genera un bloque JSON al final):
+
+      1. Crear producto (o añadir/restar inventario genérico):
       \`\`\`json
       { "action": "update", "product": "nombre", "change": cantidad_positiva_o_negativa }
       \`\`\`
-      o para crear:
+      
+      2. Crear Proveedor (cuando te mencionen un distribuidor, marca o proveedor):
       \`\`\`json
-      { "action": "create", "product": "nombre", "quantity": cantidad }
+      { "action": "create_supplier", "name": "nombre" }
       \`\`\`
-      Si es sólo consulta, responde amistosamente sin el JSON.
+
+      3. Pedido a proveedor (sumará stock automáticamente e insertará registro):
+      \`\`\`json
+      { "action": "order", "product": "nombre", "supplier": "nombre", "quantity": cantidad }
+      \`\`\`
+
+      4. Registrar desecho (restará stock por caducidad/rotura):
+      \`\`\`json
+      { "action": "waste", "product": "nombre", "quantity": cantidad, "reason": "caducidad o rotura" }
+      \`\`\`
+      
+      Si la operación es un error lógico (ej: restar algo que no existe), responde amablemente que es imposible y NO emitas el JSON.
     `;
 
     const modelName = model || 'google/gemma-4-31b-it'; 
@@ -63,24 +71,40 @@ export async function POST(req: Request) {
     const aiMessage = chatCompletion.choices?.[0]?.message?.content || 'Sin respuesta';
     let updated = false;
 
-    // Procesar JSON si existe en la respuesta para actualizar la BD real
     const jsonMatch = aiMessage.match(/```json\n([\s\S]*?)\n```/);
     if (jsonMatch) {
       try {
         const actionData = JSON.parse(jsonMatch[1]);
-        if (actionData.action === 'create' || actionData.action === 'update') {
-          const product = await Product.findOne({ name: { $regex: new RegExp('^' + actionData.product + '$', 'i') } });
-          if (product && actionData.action === 'update') {
-            product.quantity += actionData.change;
-            if (product.quantity < 0) product.quantity = 0;
-            await product.save();
-          } else if (!product && actionData.action === 'create') {
-            await Product.create({ name: actionData.product, quantity: actionData.quantity || 0 });
-          } else if (!product && actionData.action === 'update') {
-            // crear igual
-            await Product.create({ name: actionData.product, quantity: Math.max(0, actionData.change) });
-          }
+        
+        if (actionData.action === 'create_supplier') {
+          await Supplier.findOneAndUpdate({ name: actionData.name }, { name: actionData.name }, { upsert: true });
           updated = true;
+        } else if (actionData.action === 'order') {
+          await Order.create({ supplierName: actionData.supplier, productName: actionData.product, quantity: actionData.quantity });
+          const product = await Product.findOne({ name: { $regex: new RegExp('^' + actionData.product + '$', 'i') } });
+          if (product) { product.quantity += actionData.quantity; await product.save(); } else { await Product.create({ name: actionData.product, quantity: actionData.quantity }); }
+          await Supplier.findOneAndUpdate({ name: actionData.supplier }, { name: actionData.supplier }, { upsert: true });
+          updated = true;
+        } else if (actionData.action === 'waste') {
+          const product = await Product.findOne({ name: { $regex: new RegExp('^' + actionData.product + '$', 'i') } });
+          if (product && product.quantity >= actionData.quantity) {
+            await Waste.create({ productName: actionData.product, quantity: actionData.quantity, reason: actionData.reason || 'Caducidad' });
+            product.quantity -= actionData.quantity;
+            await product.save();
+            updated = true;
+          }
+        } else if (actionData.action === 'update' || actionData.action === 'create') {
+          const product = await Product.findOne({ name: { $regex: new RegExp('^' + actionData.product + '$', 'i') } });
+          if (product && actionData.change) {
+            if (product.quantity + actionData.change >= 0) {
+              product.quantity += actionData.change;
+              await product.save();
+              updated = true;
+            }
+          } else if (!product && (actionData.quantity > 0 || actionData.change > 0)) {
+            await Product.create({ name: actionData.product, quantity: actionData.quantity || actionData.change });
+            updated = true;
+          }
         }
       } catch (e) {
         console.error("Error procesando action JSON", e);

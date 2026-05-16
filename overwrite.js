@@ -1,4 +1,6 @@
-"use client";
+const fs = require('fs');
+
+const code = `"use client";
 
 import { useState, useEffect, useRef } from "react";
 import {
@@ -119,9 +121,9 @@ export default function Home() {
       let replyText = data.reply || data.error || "Error de conexión";
       
       // Ocultar el bloque JSON a la vista del usuario
-      const jsonMatch = replyText.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/);
+      const jsonMatch = replyText.match(/\\\`\\\`\\\`json\\n([\\s\\S]*?)\\n\\\`\\\`\\\`/);
       if (jsonMatch) {
-        replyText = replyText.replace(/\`\`\`json\n([\s\S]*?)\n\`\`\`/, "").trim();
+        replyText = replyText.replace(/\\\`\\\`\\\`json\\n([\\s\\S]*?)\\n\\\`\\\`\\\`/, "").trim();
       }
 
       setMessages((prev) => [
@@ -197,9 +199,9 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[100dvh] md:h-screen p-4 md:p-8 gap-6 max-w-[1400px] mx-auto font-sans overflow-hidden">
+    <div className="flex h-screen p-4 md:p-8 gap-6 max-w-[1400px] mx-auto font-sans flex-col md:flex-row">
       {/* Zona Izquierda - Chat */}
-      <div className="flex-1 flex flex-col bg-slate-800 rounded-2xl border border-slate-700 shadow-xl overflow-hidden p-6">
+      <div className="flex-1 flex flex-col bg-slate-800 rounded-2xl border border-slate-700 shadow-xl overflow-hidden p-6 mb-6 md:mb-0">
         <div className="mb-6">
           <h2 className="text-xs font-semibold text-slate-400 tracking-wider">ASISTENTE DE INVENTARIO</h2>
           <h1 className="text-3xl font-bold text-white mt-1">Stock Atelier</h1>
@@ -221,8 +223,8 @@ export default function Home() {
              <div className="text-slate-500 text-center mt-10 text-sm">Empieza pidiendo un material a un proveedor...</div>
            )}
            {messages.map((m, i) => (
-             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-               <div className={`px-4 py-2 rounded-2xl max-w-[80%] ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-200'}`}>
+             <div key={i} className={\`flex \${m.role === 'user' ? 'justify-end' : 'justify-start'}\`}>
+               <div className={\`px-4 py-2 rounded-2xl max-w-[80%] \${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-200'}\`}>
                  {m.text}
                </div>
              </div>
@@ -329,3 +331,6 @@ export default function Home() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/app/page.tsx', code);
