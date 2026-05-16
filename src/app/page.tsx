@@ -297,18 +297,49 @@ export default function Home() {
         {/* Botón para abrir Gráficos */}
         <button 
           onClick={() => setShowChartsModal(true)}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl p-4 font-semibold shadow-xl border border-indigo-500 transition-colors shrink-0"
+          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl p-3 text-sm font-semibold shadow-xl border border-indigo-500 transition-colors shrink-0"
         >
-          📊 Ver Gráficos (Stock y Mermas)
+          📊 Ver Gráficos Extendidos
         </button>
 
+        {/* INVENTARIO LIVE */}
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-xl shrink-0">
+          <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-3 uppercase">Inventario Live</h3>
+          <div className="space-y-3 max-h-[160px] overflow-y-auto pr-2">
+            {stats.products.map(p => {
+               const maxQuantity = Math.max(...stats.products.map(x => x.quantity), 1);
+               const percentage = Math.min((p.quantity / maxQuantity) * 100, 100);
+               return (
+                 <div key={p._id}>
+                   <div className="flex justify-between text-xs font-bold text-white mb-1">
+                     <span>{p.name}</span>
+                     <span>{p.quantity}</span>
+                   </div>
+                   <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                     <div className="bg-gradient-to-r from-teal-400 to-cyan-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                   </div>
+                 </div>
+               );
+            })}
+            {stats.products.length === 0 && <p className="text-xs text-slate-500">Sin stock</p>}
+          </div>
+        </div>
+
+        {/* GUÍA RÁPIDA */}
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-xl shrink-0">
+          <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-2 uppercase">Guía Rápida</h3>
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Ejemplos: "suma 6 ratones", "resta 3 monitores", "¿cuántos teclados hay?" o "crea 12 webcams".
+          </p>
+        </div>
+
         {/* Últimos Pedidos */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl flex-1 flex flex-col min-h-0">
-           <h3 className="text-sm font-semibold text-slate-400 tracking-wider mb-4 shrink-0">ÚLTIMAS ENTRADAS</h3>
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-xl flex-1 flex flex-col min-h-0">
+           <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-3 shrink-0 uppercase">Últimas Entradas</h3>
            <div className="overflow-y-auto pr-2 flex-1">
-             <ul className="text-sm space-y-3">
+             <ul className="text-[11px] space-y-2">
               {stats.orders.slice(-5).reverse().map(o => (
-                <li key={o._id} className="text-slate-300 border-b border-slate-700 pb-2 flex justify-between">
+                <li key={o._id} className="text-slate-300 border-b border-slate-700/50 pb-2 flex justify-between">
                   <span><span className="font-bold text-indigo-400">+{o.quantity}</span> {o.productName}</span>
                   <span className="text-slate-500">{o.supplierName}</span>
                 </li>

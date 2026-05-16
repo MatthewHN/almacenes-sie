@@ -62,9 +62,8 @@ export async function POST(req: Request) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
-        // Como el modelo GPT-5.4 Nano no existe formalmente en la API pública actual, mapeamos silenciosamente a GPT-4o-Mini
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: modelName,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
