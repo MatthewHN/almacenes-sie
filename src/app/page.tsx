@@ -68,7 +68,7 @@ export default function Home() {
   
   // Selector real de modelos TOP tier (propios de cada vendor)
   const models = [
-    { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano (OpenAI)' },
+    { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini (OpenAI)' },
     { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5 (Anthropic)' },
     { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Google)' }
   ];
@@ -302,29 +302,6 @@ export default function Home() {
           📊 Ver Gráficos Extendidos
         </button>
 
-        {/* INVENTARIO LIVE */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-xl shrink-0">
-          <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-3 uppercase">Inventario Live</h3>
-          <div className="space-y-3 max-h-[160px] overflow-y-auto pr-2">
-            {stats.products.map(p => {
-               const maxQuantity = Math.max(...stats.products.map(x => x.quantity), 1);
-               const percentage = Math.min((p.quantity / maxQuantity) * 100, 100);
-               return (
-                 <div key={p._id}>
-                   <div className="flex justify-between text-xs font-bold text-white mb-1">
-                     <span>{p.name}</span>
-                     <span>{p.quantity}</span>
-                   </div>
-                   <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                     <div className="bg-gradient-to-r from-teal-400 to-cyan-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
-                   </div>
-                 </div>
-               );
-            })}
-            {stats.products.length === 0 && <p className="text-xs text-slate-500">Sin stock</p>}
-          </div>
-        </div>
-
         {/* GUÍA RÁPIDA */}
         <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-xl shrink-0">
           <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-2 uppercase">Guía Rápida</h3>
@@ -363,15 +340,26 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-6">Gráficos y Estadísticas de Inventario</h2>
             
             <div className="flex flex-col md:flex-row gap-6 overflow-y-auto pb-4">
-              {/* Gráfico Barras */}
-              <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
+              {/* Nuevo Gráfico Horizontal (Inventario Live) */}
+              <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner flex flex-col">
                 <h3 className="text-sm font-semibold text-slate-300 tracking-wider mb-4">NIVELES DE STOCK ACTUAL</h3>
-                <div className="h-64 flex items-center justify-center">
-                  {stats.products.length > 0 ? (
-                      <Bar data={barData} options={chartOptions} />
-                  ) : (
-                      <p className="text-sm text-slate-500">Sin datos de stock</p>
-                  )}
+                <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+                  {stats.products.map(p => {
+                     const maxQuantity = Math.max(...stats.products.map(x => x.quantity), 1);
+                     const percentage = Math.min((p.quantity / maxQuantity) * 100, 100);
+                     return (
+                       <div key={p._id}>
+                         <div className="flex justify-between text-xs font-bold text-white mb-1">
+                           <span>{p.name}</span>
+                           <span>{p.quantity}</span>
+                         </div>
+                         <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                           <div className="bg-gradient-to-r from-indigo-500 to-indigo-400 h-2 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                         </div>
+                       </div>
+                     );
+                  })}
+                  {stats.products.length === 0 && <p className="text-sm text-slate-500 text-center mt-10">Sin stock</p>}
                 </div>
               </div>
 

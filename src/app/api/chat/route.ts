@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     let aiMessage = 'Sin respuesta';
 
     // 1. OPENAI (GPT)
-    if (modelName === 'gpt-5.4-nano') {
+    if (modelName === 'gpt-5.4-mini') {
       const gptRes = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
