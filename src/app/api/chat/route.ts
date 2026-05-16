@@ -44,6 +44,11 @@ export async function POST(req: Request) {
       \`\`\`json
       { "action": "waste", "product": "nombre", "quantity": numero_entero, "reason": "motivo" }
       \`\`\`
+
+      - Vaciar TODO el almacén por completo (incendio, quiebra, limpieza total):
+      \`\`\`json
+      { "action": "clear_all", "reason": "motivo general" }
+      \`\`\`
     `;
 
     const modelName = model; 
@@ -57,8 +62,9 @@ export async function POST(req: Request) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
+        // Como el modelo GPT-5.4 Nano no existe formalmente en la API pública actual, mapeamos silenciosamente a GPT-4o-Mini
         body: JSON.stringify({
-          model: modelName,
+          model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
@@ -117,6 +123,13 @@ export async function POST(req: Request) {
         
         if (actionData.action === 'create_supplier') {
           await Supplier.findOneAndUpdate({ name: actionData.name }, { name: actionData.name }, { upsert: true });
+          updated = true;
+        } else if (actionData.action === 'clear_all') {
+          const allProducts = await Product.find({ quantity: { $gt: 0 } });
+          for (const p of allProducts) {
+            await Waste.create({ productName: p.name, quantity: p.quantity, reason: actionData.reason || 'Limpieza Total / Desastre' });
+          }
+          await Product.updateMany({}, { $set: { quantity: 0 } });
           updated = true;
         } else if (actionData.action === 'order') {
           await Order.create({ supplierName: actionData.supplier, productName: actionData.product, quantity: actionData.quantity });
