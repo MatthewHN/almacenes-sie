@@ -115,10 +115,19 @@ export async function POST(req: Request) {
 
     let updated = false;
 
-    const jsonMatch = aiMessage.match(/```json\n([\s\S]*?)\n```/);
+    // Buscar cualquier texto entre { y } si fallan los backticks
+    let jsonString = '';
+    const jsonMatch = aiMessage.match(/```(?:json)?\s*\n([\s\S]*?)\n```/);
     if (jsonMatch) {
+      jsonString = jsonMatch[1];
+    } else {
+      const braceMatch = aiMessage.match(/\{[\s\S]*\}/);
+      if (braceMatch) jsonString = braceMatch[0];
+    }
+
+    if (jsonString) {
       try {
-        const actionData = JSON.parse(jsonMatch[1]);
+        const actionData = JSON.parse(jsonString);
         
         if (actionData.action === 'create_supplier') {
           await Supplier.findOneAndUpdate({ name: actionData.name }, { name: actionData.name }, { upsert: true });

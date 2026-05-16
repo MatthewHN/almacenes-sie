@@ -197,6 +197,26 @@ export default function Home() {
     ],
   };
 
+  const suppliersPieData = {
+    labels: [...new Set(stats.orders.map(o => o.supplierName))],
+    datasets: [
+      {
+        label: 'Pedidos por Proveedor',
+        data: [...new Set(stats.orders.map(o => o.supplierName))].map(supplierName => 
+          stats.orders.filter(o => o.supplierName === supplierName).reduce((acc, curr) => acc + curr.quantity, 0)
+        ),
+        backgroundColor: [
+          'rgba(56, 189, 248, 0.8)', // sky-400
+          'rgba(167, 139, 250, 0.8)', // purple-400
+          'rgba(251, 113, 133, 0.8)', // rose-400
+          'rgba(52, 211, 153, 0.8)', // emerald-400
+        ],
+        borderColor: '#1e293b', // slate-800
+        borderWidth: 2,
+      },
+    ],
+  };
+
   return (
     <div className="flex flex-col md:flex-row min-h-[100dvh] md:h-screen p-2 md:p-8 gap-4 md:gap-6 max-w-[1400px] mx-auto font-sans bg-slate-900 md:overflow-hidden">
       {/* Zona Izquierda - Chat */}
@@ -324,6 +344,18 @@ export default function Home() {
               {stats.orders.length === 0 && <li className="text-slate-500">Ningún pedido al proveedor</li>}
              </ul>
            </div>
+           
+           <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mt-4 mb-2 shrink-0 uppercase border-t border-slate-700 pt-4">Proveedores Activos</h3>
+           <div className="overflow-y-auto pr-2 flex-1">
+             <div className="flex flex-wrap gap-2 text-[10px]">
+               {stats.suppliers.map(s => (
+                 <span key={s._id} className="bg-slate-700 px-2 py-1 rounded text-slate-300 border border-slate-600">
+                   {s.name}
+                 </span>
+               ))}
+               {stats.suppliers.length === 0 && <p className="text-slate-500">Aún no hay proveedores</p>}
+             </div>
+           </div>
         </div>
       </div>
 
@@ -363,20 +395,57 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Gráfico Tarta */}
-              <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-slate-300 tracking-wider">MOTIVOS DE MERMA</h3>
-                  <p className="text-[10px] text-slate-400 mt-1 leading-tight">Las mermas son reducciones de stock por problemas como caducidad, pérdidas o roturas (productos que se tiran a la basura).</p>
+              {/* Contenedor Pie Charts */}
+              <div className="flex-1 flex flex-col gap-6">
+                {/* Gráfico Tarta Mermas */}
+                <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-slate-300 tracking-wider">MOTIVOS DE MERMA</h3>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-tight">Las mermas son reducciones de stock por problemas como caducidad o pérdidas.</p>
+                  </div>
+                  <div className="h-48 flex items-center justify-center">
+                    {stats.wastes.length > 0 ? (
+                        <Pie data={pieData} options={pieChartOptions} />
+                    ) : (
+                        <p className="text-sm text-slate-500">Sin registros de mermas</p>
+                    )}
+                  </div>
                 </div>
-                <div className="h-64 flex items-center justify-center">
-                  {stats.wastes.length > 0 ? (
-                      <Pie data={pieData} options={pieChartOptions} />
-                  ) : (
-                      <p className="text-sm text-slate-500">Sin registros de mermas</p>
-                  )}
+
+                {/* Gráfico Tarta Proveedores */}
+                <div className="flex-1 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-slate-300 tracking-wider">PEDIDOS POR PROVEEDOR</h3>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-tight">Distribución de cantidad de pedidos realizados a cada proveedor.</p>
+                  </div>
+                  <div className="h-48 flex items-center justify-center">
+                    {stats.orders.length > 0 ? (
+                        <Pie data={suppliersPieData} options={pieChartOptions} />
+                    ) : (
+                        <p className="text-sm text-slate-500">Sin registros de pedidos</p>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Listado de Caducados */}
+            <div className="mt-6 bg-slate-700 rounded-2xl border border-slate-600 p-4 shadow-inner">
+                <div className="mb-4 border-b border-slate-600 pb-2">
+                  <h3 className="text-sm font-semibold text-slate-300 tracking-wider text-rose-400">🚨 PRODUCTOS CADUCADOS O MERMADOS</h3>
+                  <p className="text-[10px] text-slate-400 mt-1 leading-tight">Historial de productos notificados como desechos.</p>
+                </div>
+                <div className="max-h-32 overflow-y-auto pr-2">
+                  <ul className="text-sm space-y-2">
+                    {stats.wastes.reverse().map(w => (
+                      <li key={w._id} className="text-slate-300 flex justify-between border-b border-slate-600/50 pb-2 last:border-0">
+                        <span><span className="font-bold text-rose-400">-{w.quantity}</span> {w.productName}</span>
+                        <span className="text-slate-500 text-xs">{w.reason} - {new Date(w.date).toLocaleDateString()}</span>
+                      </li>
+                    ))}
+                    {stats.wastes.length === 0 && <li className="text-slate-500 text-sm">No hay productos mermados.</li>}
+                  </ul>
+                </div>
             </div>
           </div>
         </div>
