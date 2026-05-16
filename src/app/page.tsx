@@ -217,6 +217,11 @@ export default function Home() {
     ],
   };
 
+  const recentMoves = [
+    ...stats.orders.map(o => ({ _id: o._id, quantity: o.quantity, productName: o.productName, detail: o.supplierName, type: 'in', date: new Date(o.date).getTime() })),
+    ...stats.wastes.map(w => ({ _id: w._id, quantity: w.quantity, productName: w.productName, detail: w.reason, type: 'out', date: new Date(w.date).getTime() }))
+  ].sort((a, b) => a.date - b.date).slice(-7).reverse();
+
   return (
     <div className="flex flex-col md:flex-row min-h-[100dvh] md:h-screen p-2 md:p-8 gap-4 md:gap-6 max-w-[1400px] mx-auto font-sans bg-slate-900 md:overflow-hidden">
       {/* Zona Izquierda - Chat */}
@@ -332,16 +337,20 @@ export default function Home() {
 
         {/* Últimos Pedidos */}
         <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 shadow-xl flex-1 flex flex-col min-h-0">
-           <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-3 shrink-0 uppercase">Últimas Entradas</h3>
+           <h3 className="text-[11px] font-bold text-slate-400 tracking-widest mb-3 shrink-0 uppercase">Últimos Movimientos</h3>
            <div className="overflow-y-auto pr-2 flex-1">
              <ul className="text-[11px] space-y-2">
-              {stats.orders.slice(-5).reverse().map(o => (
-                <li key={o._id} className="text-slate-300 border-b border-slate-700/50 pb-2 flex justify-between">
-                  <span><span className="font-bold text-indigo-400">+{o.quantity}</span> {o.productName}</span>
-                  <span className="text-slate-500">{o.supplierName}</span>
+              {recentMoves.map(m => (
+                <li key={m._id} className="text-slate-300 border-b border-slate-700/50 pb-2 flex justify-between">
+                  <span>
+                    <span className={`font-bold ${m.type === 'in' ? 'text-indigo-400' : 'text-rose-400'}`}>
+                      {m.type === 'in' ? '+' : '-'}{m.quantity}
+                    </span> {m.productName}
+                  </span>
+                  <span className="text-slate-500">{m.detail}</span>
                 </li>
               ))}
-              {stats.orders.length === 0 && <li className="text-slate-500">Ningún pedido al proveedor</li>}
+              {recentMoves.length === 0 && <li className="text-slate-500">Ningún movimiento reciente</li>}
              </ul>
            </div>
            
