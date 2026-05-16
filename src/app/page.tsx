@@ -66,11 +66,11 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   
-  // Modelos REALES, independientes y diferentes provistos oficialmente por NVIDIA
+  // Selector real de modelos TOP tier (propios de cada vendor)
   const models = [
-    { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B (Google)' },
-    { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek v4 Pro (DeepSeek)' },
-    { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (Meta)' }
+    { id: 'gpt-4o-mini', name: 'GPT-4o Mini (OpenAI)' },
+    { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku (Anthropic)' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Google)' }
   ];
   const [model, setModel] = useState(models[0].id);
 

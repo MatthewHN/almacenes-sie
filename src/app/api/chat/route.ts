@@ -46,31 +46,68 @@ export async function POST(req: Request) {
       \`\`\`
     `;
 
-    const modelName = model; // Carga exactamente el modelo que llega del Frontend, sin trampas.
+    const modelName = model; 
+    let aiMessage = 'Sin respuesta';
 
-    const nvidiaResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 500,
-      })
-    });
-
-    if (!nvidiaResponse.ok) {
-      const errText = await nvidiaResponse.text();
-      throw new Error(`NVIDIA API HTTP ${nvidiaResponse.status}: ${errText}`);
+    // 1. OPENAI (GPT)
+    if (modelName === 'gpt-4o-mini') {
+      const gptRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message }
+          ]
+        })
+      });
+      if (!gptRes.ok) throw new Error(`OpenAI HTTP ${gptRes.status}: ${await gptRes.text()}`);
+      const gptJson = await gptRes.json();
+      aiMessage = gptJson.choices?.[0]?.message?.content || 'Sin respuesta';
+    } 
+    
+    // 2. ANTHROPIC (CLAUDE)
+    else if (modelName === 'claude-3-haiku-20240307') {
+      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: modelName,
+          max_tokens: 500,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: message }]
+        })
+      });
+      if (!claudeRes.ok) throw new Error(`Anthropic HTTP ${claudeRes.status}: ${await claudeRes.text()}`);
+      const claudeJson = await claudeRes.json();
+      aiMessage = claudeJson.content?.[0]?.text || 'Sin respuesta';
+    }
+    
+    // 3. GOOGLE (GEMINI)
+    else if (modelName === 'gemini-1.5-flash') {
+      const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: message }] }]
+        })
+      });
+      if (!geminiRes.ok) throw new Error(`Gemini HTTP ${geminiRes.status}: ${await geminiRes.text()}`);
+      const geminiJson = await geminiRes.json();
+      aiMessage = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta';
+    } else {
+      throw new Error(`Modelo no soportado o desconocido: ${modelName}`);
     }
 
-    const chatCompletion = await nvidiaResponse.json();
-    const aiMessage = chatCompletion.choices?.[0]?.message?.content || 'Sin respuesta';
     let updated = false;
 
     const jsonMatch = aiMessage.match(/```json\n([\s\S]*?)\n```/);
