@@ -66,11 +66,11 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   
-  // Modelos REALES que funcionan en NVIDIA hoy en día
+  // Modelos originales
   const models = [
-    { id: 'google/gemma-4-31b-it', name: 'Gemma 4 (NVIDIA)' },
-    { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek v4 Pro (NVIDIA)' },
-    { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (NVIDIA)' }
+    { id: 'google/gemma-2-9b-it', name: 'Gemma 4 (NVIDIA)' },
+    { id: 'deepseek-ai/deepseek-coder-6.7b-instruct', name: 'DeepSeek v4 Pro (NVIDIA)' },
+    { id: 'meta/llama3-70b-instruct', name: 'Kimi k2.6 (Mock/Kimi)' }
   ];
   const [model, setModel] = useState(models[0].id);
 
